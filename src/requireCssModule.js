@@ -14,6 +14,7 @@ import LocalByDefault from 'postcss-modules-local-by-default';
 import Parser from 'postcss-modules-parser';
 import Scope from 'postcss-modules-scope';
 import Values from 'postcss-modules-values';
+import stylus from 'stylus';
 import type {
   GenerateScopedNameConfigurationType,
   StyleModuleMapType
@@ -69,13 +70,16 @@ const getTokens = (runner, cssSourceFilePath: string, filetypeOptions: ?Filetype
   const options: Object = {
     from: cssSourceFilePath
   };
+  let src = readFileSync(cssSourceFilePath, 'utf-8');
 
-  if (filetypeOptions) {
+  if (/\.styl$/.test(cssSourceFilePath)) {
+    src = stylus.render(src, {filename: cssSourceFilePath});
+  } else if (filetypeOptions) {
     options.syntax = getSyntax(filetypeOptions);
   }
 
   const lazyResult = runner
-    .process(readFileSync(cssSourceFilePath, 'utf-8'), options);
+    .process(src, options);
 
   lazyResult
     .warnings()
