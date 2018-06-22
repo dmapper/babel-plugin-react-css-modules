@@ -89,12 +89,15 @@ const getTokens = (runner, cssSourceFilePath, filetypeOptions) => {
   const options = {
     from: cssSourceFilePath
   };
+  let src = (0, _fs.readFileSync)(cssSourceFilePath, 'utf-8');
 
-  if (filetypeOptions) {
+  if (/\.styl$/.test(cssSourceFilePath)) {
+    src = _stylus2.default.render(src, { filename: cssSourceFilePath });
+  } else if (filetypeOptions) {
     options.syntax = getSyntax(filetypeOptions);
   }
 
-  const lazyResult = runner.process(_stylus2.default.render((0, _fs.readFileSync)(cssSourceFilePath, 'utf-8'), { filename }), options);
+  const lazyResult = runner.process(src, options);
 
   lazyResult.warnings().forEach(message => {
     // eslint-disable-next-line no-console
