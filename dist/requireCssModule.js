@@ -92,7 +92,21 @@ const getTokens = (runner, cssSourceFilePath, filetypeOptions) => {
   let src = (0, _fs.readFileSync)(cssSourceFilePath, 'utf-8');
 
   if (/\.styl$/.test(cssSourceFilePath)) {
-    src = _stylus2.default.render(src, { filename: cssSourceFilePath });
+    const STYLES_PATH = (0, _path.join)(process.cwd(), 'styles');
+    const compiler = (0, _stylus2.default)(src);
+
+    compiler.set('filename', cssSourceFilePath);
+
+    // TODO: Make this a setting
+    if ((0, _fs.existsSync)(STYLES_PATH)) {
+      compiler.include(STYLES_PATH);
+    }
+    compiler.render((err, res) => {
+      if (err) {
+        throw new Error(err);
+      }
+      src = res;
+    });
   } else if (filetypeOptions) {
     options.syntax = getSyntax(filetypeOptions);
   }
