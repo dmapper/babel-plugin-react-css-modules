@@ -2,10 +2,12 @@
 
 import {
   dirname,
-  resolve
+  resolve,
+  join
 } from 'path';
 import {
-  readFileSync
+  readFileSync,
+  existsSync
 } from 'fs';
 import postcss from 'postcss';
 import genericNames from 'generic-names';
@@ -73,7 +75,21 @@ const getTokens = (runner, cssSourceFilePath: string, filetypeOptions: ?Filetype
   let src = readFileSync(cssSourceFilePath, 'utf-8');
 
   if (/\.styl$/.test(cssSourceFilePath)) {
-    src = stylus.render(src, {filename: cssSourceFilePath});
+    const STYLES_PATH = join(process.cwd(), 'styles');
+    const compiler = stylus(src);
+
+    compiler.set('filename', cssSourceFilePath);
+
+    // TODO: Make this a setting
+    if (existsSync(STYLES_PATH)) {
+      compiler.include(STYLES_PATH);
+    }
+    compiler.render((err, res) => {
+      if (err) {
+        throw new Error(err);
+      }
+      src = res;
+    });
   } else if (filetypeOptions) {
     options.syntax = getSyntax(filetypeOptions);
   }
