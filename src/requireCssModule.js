@@ -75,7 +75,7 @@ const getTokens = (runner, cssSourceFilePath: string, filetypeOptions: ?Filetype
   let src = readFileSync(cssSourceFilePath, 'utf-8');
 
   if (/\.styl$/.test(cssSourceFilePath)) {
-    const STYLES_PATH = join(process.cwd(), 'styles');
+    const STYLES_PATH = join(process.cwd(), 'styles/index.styl');
     const compiler = stylus(src);
 
     compiler.set('filename', cssSourceFilePath);
