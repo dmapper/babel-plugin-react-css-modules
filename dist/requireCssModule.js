@@ -99,7 +99,7 @@ const getTokens = (runner, cssSourceFilePath, filetypeOptions) => {
 
     // TODO: Make this a setting
     if ((0, _fs.existsSync)(STYLES_PATH)) {
-      compiler.include(STYLES_PATH);
+      compiler.import(STYLES_PATH);
     }
     compiler.render((err, res) => {
       if (err) {
