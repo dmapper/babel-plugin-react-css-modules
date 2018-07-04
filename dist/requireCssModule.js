@@ -92,7 +92,7 @@ const getTokens = (runner, cssSourceFilePath, filetypeOptions) => {
   let src = (0, _fs.readFileSync)(cssSourceFilePath, 'utf-8');
 
   if (/\.styl$/.test(cssSourceFilePath)) {
-    const STYLES_PATH = (0, _path.join)(process.cwd(), 'styles');
+    const STYLES_PATH = (0, _path.join)(process.cwd(), 'styles/index.styl');
     const compiler = (0, _stylus2.default)(src);
 
     compiler.set('filename', cssSourceFilePath);
@@ -101,6 +101,7 @@ const getTokens = (runner, cssSourceFilePath, filetypeOptions) => {
     if ((0, _fs.existsSync)(STYLES_PATH)) {
       compiler.import(STYLES_PATH);
     }
+    compiler.define('__WEB__', true);
     compiler.render((err, res) => {
       if (err) {
         throw new Error(err);
