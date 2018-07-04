@@ -84,6 +84,7 @@ const getTokens = (runner, cssSourceFilePath: string, filetypeOptions: ?Filetype
     if (existsSync(STYLES_PATH)) {
       compiler.import(STYLES_PATH);
     }
+    compiler.define('__WEB__', true);
     compiler.render((err, res) => {
       if (err) {
         throw new Error(err);
