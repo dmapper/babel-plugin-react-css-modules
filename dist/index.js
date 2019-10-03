@@ -1,98 +1,76 @@
-'use strict';
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.default = void 0;
 
-var _path = require('path');
+var _path = require("path");
 
-var _babelPluginSyntaxJsx = require('babel-plugin-syntax-jsx');
+var _pluginSyntaxJsx = _interopRequireDefault(require("@babel/plugin-syntax-jsx"));
 
-var _babelPluginSyntaxJsx2 = _interopRequireDefault(_babelPluginSyntaxJsx);
+var _types = _interopRequireDefault(require("@babel/types"));
 
-var _babelTypes = require('babel-types');
+var _ajvKeywords = _interopRequireDefault(require("ajv-keywords"));
 
-var _babelTypes2 = _interopRequireDefault(_babelTypes);
+var _ajv = _interopRequireDefault(require("ajv"));
 
-var _ajvKeywords = require('ajv-keywords');
+var _optionsSchema = _interopRequireDefault(require("./schemas/optionsSchema.json"));
 
-var _ajvKeywords2 = _interopRequireDefault(_ajvKeywords);
+var _optionsDefaults = _interopRequireDefault(require("./schemas/optionsDefaults"));
 
-var _ajv = require('ajv');
+var _createObjectExpression = _interopRequireDefault(require("./createObjectExpression"));
 
-var _ajv2 = _interopRequireDefault(_ajv);
+var _requireCssModule = _interopRequireDefault(require("./requireCssModule"));
 
-var _optionsSchema = require('./schemas/optionsSchema.json');
+var _resolveStringLiteral = _interopRequireDefault(require("./resolveStringLiteral"));
 
-var _optionsSchema2 = _interopRequireDefault(_optionsSchema);
+var _replaceJsxExpressionContainer = _interopRequireDefault(require("./replaceJsxExpressionContainer"));
 
-var _optionsDefaults = require('./schemas/optionsDefaults');
+var _attributeNameExists = _interopRequireDefault(require("./attributeNameExists"));
 
-var _optionsDefaults2 = _interopRequireDefault(_optionsDefaults);
+var _createSpreadMapper = _interopRequireDefault(require("./createSpreadMapper"));
 
-var _createObjectExpression = require('./createObjectExpression');
-
-var _createObjectExpression2 = _interopRequireDefault(_createObjectExpression);
-
-var _requireCssModule = require('./requireCssModule');
-
-var _requireCssModule2 = _interopRequireDefault(_requireCssModule);
-
-var _resolveStringLiteral = require('./resolveStringLiteral');
-
-var _resolveStringLiteral2 = _interopRequireDefault(_resolveStringLiteral);
-
-var _replaceJsxExpressionContainer = require('./replaceJsxExpressionContainer');
-
-var _replaceJsxExpressionContainer2 = _interopRequireDefault(_replaceJsxExpressionContainer);
+var _handleSpreadClassName = _interopRequireDefault(require("./handleSpreadClassName"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const ajv = new _ajv2.default({
+const ajv = new _ajv.default({
   // eslint-disable-next-line id-match
   $data: true
 });
+(0, _ajvKeywords.default)(ajv);
+const validate = ajv.compile(_optionsSchema.default);
 
-(0, _ajvKeywords2.default)(ajv);
-
-const validate = ajv.compile(_optionsSchema2.default);
-
-exports.default = (_ref) => {
-  let t = _ref.types;
-
+var _default = ({
+  types: t
+}) => {
   const filenameMap = {};
+  let skip = false;
 
   const setupFileForRuntimeResolution = (path, filename) => {
     const programPath = path.findParent(parentPath => {
       return parentPath.isProgram();
     });
-
     filenameMap[filename].importedHelperIndentifier = programPath.scope.generateUidIdentifier('getClassName');
     filenameMap[filename].styleModuleImportMapIdentifier = programPath.scope.generateUidIdentifier('styleModuleImportMap');
-
     programPath.unshiftContainer('body', t.importDeclaration([t.importDefaultSpecifier(filenameMap[filename].importedHelperIndentifier)], t.stringLiteral('babel-plugin-react-css-modules/dist/browser/getClassName')));
-
     const firstNonImportDeclarationNode = programPath.get('body').find(node => {
       return !t.isImportDeclaration(node);
     });
-
-    firstNonImportDeclarationNode.insertBefore(t.variableDeclaration('const', [t.variableDeclarator(filenameMap[filename].styleModuleImportMapIdentifier, (0, _createObjectExpression2.default)(t, filenameMap[filename].styleModuleImportMap))]));
-    // eslint-disable-next-line no-console
+    firstNonImportDeclarationNode.insertBefore(t.variableDeclaration('const', [t.variableDeclarator(filenameMap[filename].styleModuleImportMapIdentifier, (0, _createObjectExpression.default)(t, filenameMap[filename].styleModuleImportMap))])); // eslint-disable-next-line no-console
     // console.log('setting up', filename, util.inspect(filenameMap,{depth: 5}))
   };
 
   const addWebpackHotModuleAccept = path => {
     const test = t.memberExpression(t.identifier('module'), t.identifier('hot'));
     const consequent = t.blockStatement([t.expressionStatement(t.callExpression(t.memberExpression(t.memberExpression(t.identifier('module'), t.identifier('hot')), t.identifier('accept')), [t.stringLiteral(path.node.source.value), t.functionExpression(null, [], t.blockStatement([t.expressionStatement(t.callExpression(t.identifier('require'), [t.stringLiteral(path.node.source.value)]))]))]))]);
-
     const programPath = path.findParent(parentPath => {
       return parentPath.isProgram();
     });
-
     const firstNonImportDeclarationNode = programPath.get('body').find(node => {
       return !t.isImportDeclaration(node);
     });
-
     const hotAcceptStatement = t.ifStatement(test, consequent);
 
     if (firstNonImportDeclarationNode) {
@@ -112,16 +90,21 @@ exports.default = (_ref) => {
     return require.resolve(path.node.source.value);
   };
 
+  const isFilenameExcluded = (filename, exclude) => {
+    return filename.match(new RegExp(exclude));
+  };
+
   const notForPlugin = (path, stats) => {
     stats.opts.filetypes = stats.opts.filetypes || {};
-
     const extension = path.node.source.value.lastIndexOf('.') > -1 ? path.node.source.value.substr(path.node.source.value.lastIndexOf('.')) : null;
 
     if (extension !== '.css' && Object.keys(stats.opts.filetypes).indexOf(extension) < 0) {
       return true;
     }
 
-    if (stats.opts.exclude && getTargetResourcePath(path, stats).match(new RegExp(stats.opts.exclude))) {
+    const filename = getTargetResourcePath(path, stats);
+
+    if (stats.opts.exclude && isFilenameExcluded(filename, stats.opts.exclude)) {
       return true;
     }
 
@@ -129,16 +112,15 @@ exports.default = (_ref) => {
   };
 
   return {
-    inherits: _babelPluginSyntaxJsx2.default,
+    inherits: _pluginSyntaxJsx.default,
     visitor: {
       ImportDeclaration(path, stats) {
-        if (notForPlugin(path, stats)) {
+        if (skip || notForPlugin(path, stats)) {
           return;
         }
 
         const filename = stats.file.opts.filename;
         const targetResourcePath = getTargetResourcePath(path, stats);
-
         let styleImportName;
 
         if (path.node.specifiers.length === 0) {
@@ -149,11 +131,10 @@ exports.default = (_ref) => {
         } else {
           // eslint-disable-next-line no-console
           console.warn('Please report your use case. https://github.com/gajus/babel-plugin-react-css-modules/issues/new?title=Unexpected+use+case.');
-
           throw new Error('Unexpected use case.');
         }
 
-        filenameMap[filename].styleModuleImportMap[styleImportName] = (0, _requireCssModule2.default)(targetResourcePath, {
+        filenameMap[filename].styleModuleImportMap[styleImportName] = (0, _requireCssModule.default)(targetResourcePath, {
           context: stats.opts.context,
           filetypes: stats.opts.filetypes || {},
           generateScopedName: stats.opts.generateScopedName
@@ -167,10 +148,19 @@ exports.default = (_ref) => {
           path.remove();
         }
       },
+
       JSXElement(path, stats) {
+        if (skip) {
+          return;
+        }
+
         const filename = stats.file.opts.filename;
 
-        let attributeNames = _optionsDefaults2.default.attributeNames;
+        if (stats.opts.exclude && isFilenameExcluded(filename, stats.opts.exclude)) {
+          return;
+        }
+
+        let attributeNames = _optionsDefaults.default.attributeNames;
 
         if (stats.opts && stats.opts.attributeNames) {
           attributeNames = Object.assign({}, attributeNames, stats.opts.attributeNames);
@@ -184,40 +174,55 @@ exports.default = (_ref) => {
           return;
         }
 
-        const handleMissingStyleName = stats.opts && stats.opts.handleMissingStyleName || _optionsDefaults2.default.handleMissingStyleName;
+        const {
+          handleMissingStyleName = _optionsDefaults.default.handleMissingStyleName,
+          autoResolveMultipleImports = _optionsDefaults.default.autoResolveMultipleImports
+        } = stats.opts || {};
+        const spreadMap = (0, _createSpreadMapper.default)(path, stats);
 
         for (const attribute of attributes) {
           const destinationName = attributeNames[attribute.name.name];
+          const options = {
+            autoResolveMultipleImports,
+            handleMissingStyleName
+          };
 
           if (t.isStringLiteral(attribute.value)) {
-            (0, _resolveStringLiteral2.default)(path, filenameMap[filename].styleModuleImportMap, attribute, destinationName, {
-              handleMissingStyleName
-            });
+            (0, _resolveStringLiteral.default)(path, filenameMap[filename].styleModuleImportMap, attribute, destinationName, options);
           } else if (t.isJSXExpressionContainer(attribute.value)) {
             if (!filenameMap[filename].importedHelperIndentifier) {
               setupFileForRuntimeResolution(path, filename);
             }
-            (0, _replaceJsxExpressionContainer2.default)(t, path, attribute, destinationName, filenameMap[filename].importedHelperIndentifier, filenameMap[filename].styleModuleImportMapIdentifier, {
-              handleMissingStyleName
-            });
+
+            (0, _replaceJsxExpressionContainer.default)(t, path, attribute, destinationName, filenameMap[filename].importedHelperIndentifier, filenameMap[filename].styleModuleImportMapIdentifier, options);
+          }
+
+          if (spreadMap[destinationName]) {
+            (0, _handleSpreadClassName.default)(path, destinationName, spreadMap[destinationName]);
           }
         }
       },
+
       Program(path, stats) {
         if (!validate(stats.opts)) {
           // eslint-disable-next-line no-console
           console.error(validate.errors);
-
           throw new Error('Invalid configuration');
         }
 
         const filename = stats.file.opts.filename;
-
         filenameMap[filename] = {
           styleModuleImportMap: {}
         };
+
+        if (stats.opts.skip && !(0, _attributeNameExists.default)(path, stats)) {
+          skip = true;
+        }
       }
+
     }
   };
 };
+
+exports.default = _default;
 //# sourceMappingURL=index.js.map

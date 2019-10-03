@@ -1,14 +1,15 @@
-'use strict';
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.default = void 0;
 
-var _babelTypes = require('babel-types');
+var _types = _interopRequireWildcard(require("@babel/types"));
 
-var _babelTypes2 = _interopRequireDefault(_babelTypes);
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; if (obj != null) { var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /**
  * Creates an AST representation of an InputObjectType shape object.
@@ -18,16 +19,17 @@ const createObjectExpression = (t, object) => {
 
   for (const name of Object.keys(object)) {
     const value = object[name];
+    let newValue; // eslint-disable-next-line no-empty
 
-    let newValue;
-
-    // eslint-disable-next-line no-empty
     if (t.isAnyTypeAnnotation(value)) {} else if (typeof value === 'string') {
       newValue = t.stringLiteral(value);
     } else if (typeof value === 'object') {
       newValue = createObjectExpression(t, value);
     } else if (typeof value === 'boolean') {
       newValue = t.booleanLiteral(value);
+    } else if (typeof value === 'undefined') {
+      // eslint-disable-next-line no-continue
+      continue;
     } else {
       throw new TypeError('Unexpected type: ' + typeof value);
     }
@@ -38,5 +40,6 @@ const createObjectExpression = (t, object) => {
   return t.objectExpression(properties);
 };
 
-exports.default = createObjectExpression;
+var _default = createObjectExpression;
+exports.default = _default;
 //# sourceMappingURL=createObjectExpression.js.map
