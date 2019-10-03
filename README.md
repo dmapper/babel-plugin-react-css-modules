@@ -1,5 +1,6 @@
 # babel-plugin-react-css-modules
 
+[![GitSpo Mentions](https://gitspo.com/badges/mentions/gajus/babel-plugin-react-css-modules?style=flat-square)](https://gitspo.com/mentions/gajus/babel-plugin-react-css-modules)
 [![Travis build status](http://img.shields.io/travis/gajus/babel-plugin-react-css-modules/master.svg?style=flat-square)](https://travis-ci.org/gajus/babel-plugin-react-css-modules)
 [![NPM version](http://img.shields.io/npm/v/babel-plugin-react-css-modules.svg?style=flat-square)](https://www.npmjs.org/package/babel-plugin-react-css-modules)
 [![Canonical Code Style](https://img.shields.io/badge/code%20style-canonical-blue.svg?style=flat-square)](https://github.com/gajus/canonical)
@@ -75,7 +76,7 @@ and a corresponding CSS file that matches those CSS classes.
 
 Awesome!
 
-However, there are several several disadvantages of using CSS modules this way:
+However, there are several disadvantages of using CSS modules this way:
 
 * You have to use `camelCase` CSS class names.
 * You have to use `styles` object whenever constructing a `className`.
@@ -167,7 +168,7 @@ NODE_ENV=production ./test
 1. Parses the `styleName` attribute value into anonymous and named CSS module references.
 1. Finds the CSS class name matching the CSS module reference:
     * If `styleName` value is a string literal, generates a string literal value.
-    * If `styleName` value is a [`jSXExpressionContainer`](https://github.com/babel/babel/tree/master/packages/babel-types#jsxexpressioncontainer), uses a helper function ([`getClassName`](./src/getClassName.js)) to construct the `className` value at the runtime.
+    * If `styleName` value is a [`jSXExpressionContainer`](https://babeljs.io/docs/en/next/babel-types.html#jsxexpressioncontainer), uses a helper function ([`getClassName`](./src/getClassName.js)) to construct the `className` value at the runtime.
 1. Removes the `styleName` attribute from the element.
 1. Appends the resulting `className` to the existing `className` value (creates `className` attribute if one does not exist).
 
@@ -190,14 +191,16 @@ Configure the options for the plugin within your `.babelrc` as follows:
 
 |Name|Type|Description|Default|
 |---|---|---|---|
-|`context`|`string`|Must match webpack [`context`](https://webpack.github.io/docs/configuration.html#context) configuration. [`css-loader`](https://github.com/webpack/css-loader) inherits `context` values from webpack. Other CSS module implementations might use different context resolution logic.|`process.cwd()`|
+|`context`|`string`|Must match webpack [`context`](https://webpack.js.org/configuration/entry-context/#context) configuration. [`css-loader`](https://github.com/webpack/css-loader) inherits `context` values from webpack. Other CSS module implementations might use different context resolution logic.|`process.cwd()`|
 |`exclude`|`string`|A RegExp that will exclude otherwise included files e.g., to exclude all styles from node_modules `exclude: 'node_modules'`|
-|`filetypes`|`?FiletypesConfigurationType`|Configure [postcss syntax loaders](https://github.com/postcss/postcss#syntaxes) like sugerss, LESS and SCSS and extra plugins for them. ||
+|`filetypes`|`?FiletypesConfigurationType`|Configure [postcss syntax loaders](https://github.com/postcss/postcss#syntaxes) like sugarss, LESS and SCSS and extra plugins for them. ||
 |`generateScopedName`|`?GenerateScopedNameConfigurationType`|Refer to [Generating scoped names](https://github.com/css-modules/postcss-modules#generating-scoped-names). If you use this option, make sure it matches the value of `localIdentName` in webpack config. See this [issue](https://github.com/gajus/babel-plugin-react-css-modules/issues/108#issuecomment-334351241) |`[path]___[name]__[local]___[hash:base64:5]`|
 |`removeImport`|`boolean`|Remove the matching style import. This option is used to enable server-side rendering.|`false`|
 |`webpackHotModuleReloading`|`boolean`|Enables hot reloading of CSS in webpack|`false`|
 |`handleMissingStyleName`|`"throw"`, `"warn"`, `"ignore"`|Determines what should be done for undefined CSS modules (using a `styleName` for which there is no CSS module defined).  Setting this option to `"ignore"` is equivalent to setting `errorWhenNotFound: false` in [react-css-modules](https://github.com/gajus/react-css-modules#errorwhennotfound). |`"throw"`|
 |`attributeNames`|`?AttributeNameMapType`|Refer to [Custom Attribute Mapping](#custom-attribute-mapping)|`{"styleName": "className"}`|
+|`skip`|`boolean`|Whether to apply plugin if no matching `attributeNames` found in the file|`false`|
+|`autoResolveMultipleImports`|`boolean`|Allow multiple anonymous imports if `styleName` is only in one of them.|`false`|
 
 Missing a configuration? [Raise an issue](https://github.com/gajus/babel-plugin-react-css-modules/issues/new?title=New%20configuration:).
 
@@ -258,9 +261,9 @@ To add support for different CSS syntaxes (e.g. SCSS), perform the following two
     }
   }
   ```
-  
+
   Postcss plugins can have options specified by wrapping the name and an options object in an array inside your config
-  
+
   ```json
     "plugins": [
       ["postcss-import-sync2", {
@@ -268,9 +271,9 @@ To add support for different CSS syntaxes (e.g. SCSS), perform the following two
       }],
       "postcss-nested"
     ]
-  ```  
-   
-  
+  ```
+
+
 ### Custom Attribute Mapping
 
 You can set your own attribute mapping rules using the `attributeNames` option.
@@ -472,17 +475,17 @@ This behaviour is enabled by default in `babel-plugin-react-css-modules`.
 
 ### How to live reload the CSS?
 
-`babel-plugin-react-css-modules` utilises webpack [Hot Module Replacement](https://webpack.github.io/docs/hot-module-replacement.html) (HMR) to live reload the CSS.
+`babel-plugin-react-css-modules` utilises webpack [Hot Module Replacement](https://webpack.js.org/concepts/hot-module-replacement/#root) (HMR) to live reload the CSS.
 
 To enable live reloading of the CSS:
 
 * Enable [`webpackHotModuleReloading`](#configuration) `babel-plugin-react-css-modules` configuration.
-* Configure `webpack` to use HMR. Use [`--hot`](https://webpack.github.io/docs/webpack-dev-server.html) option if you are using `webpack-dev-server`.
+* Configure `webpack` to use HMR. Use [`--hot`](https://webpack.js.org/configuration/dev-server/#root) option if you are using `webpack-dev-server`.
 * Use [`style-loader`](https://github.com/webpack/style-loader) to load the style sheets.
 
 > Note:
 >
-> This enables live reloading of the CSS. To enable HMR of the React components, refer to the [Hot Module Replacement - React](https://webpack.js.org/guides/hmr-react/) guide.
+> This enables live reloading of the CSS. To enable HMR of the React components, refer to the [Hot Module Replacement - React](https://webpack.js.org/guides/hot-module-replacement/#other-code-and-frameworks) guide.
 
 > Note:
 >

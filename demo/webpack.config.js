@@ -21,7 +21,7 @@ module.exports = {
         loader: 'babel-loader',
         query: {
           plugins: [
-            'transform-react-jsx',
+            '@babel/transform-react-jsx',
             [
               'react-css-modules',
               {
