@@ -21,6 +21,7 @@ import type {
   GenerateScopedNameConfigurationType,
   StyleModuleMapType
 } from './types';
+import optionsDefaults from './schemas/optionsDefaults';
 
 type FiletypeOptionsType = {|
   +syntax: string,
@@ -30,6 +31,12 @@ type FiletypeOptionsType = {|
 type FiletypesConfigurationType = {
   [key: string]: FiletypeOptionsType
 };
+
+type OptionsType = {|
+  filetypes: FiletypesConfigurationType,
+  generateScopedName?: GenerateScopedNameConfigurationType,
+  context?: string
+|};
 
 const getFiletypeOptions = (cssSourceFilePath: string, filetypes: FiletypesConfigurationType): ?FiletypeOptionsType => {
   const extension = cssSourceFilePath.substr(cssSourceFilePath.lastIndexOf('.'));
@@ -108,12 +115,6 @@ const getTokens = (runner, cssSourceFilePath: string, filetypeOptions: ?Filetype
   return lazyResult.root.tokens;
 };
 
-type OptionsType = {|
-  filetypes: FiletypesConfigurationType,
-  generateScopedName?: GenerateScopedNameConfigurationType,
-  context?: string
-|};
-
 export default (cssSourceFilePath: string, options: OptionsType): StyleModuleMapType => {
   // eslint-disable-next-line prefer-const
   let runner;
@@ -123,7 +124,7 @@ export default (cssSourceFilePath: string, options: OptionsType): StyleModuleMap
   if (options.generateScopedName && typeof options.generateScopedName === 'function') {
     generateScopedName = options.generateScopedName;
   } else {
-    generateScopedName = genericNames(options.generateScopedName || '[path]___[name]__[local]___[hash:base64:5]', {
+    generateScopedName = genericNames(options.generateScopedName || optionsDefaults.generateScopedName, {
       context: options.context || process.cwd()
     });
   }

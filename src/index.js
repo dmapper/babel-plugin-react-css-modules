@@ -4,8 +4,8 @@ import {
   dirname,
   resolve
 } from 'path';
-import babelPluginJsxSyntax from 'babel-plugin-syntax-jsx';
-import BabelTypes from 'babel-types';
+import babelPluginJsxSyntax from '@babel/plugin-syntax-jsx';
+import BabelTypes from '@babel/types';
 import ajvKeywords from 'ajv-keywords';
 import Ajv from 'ajv';
 import optionsSchema from './schemas/optionsSchema.json';
@@ -14,6 +14,9 @@ import createObjectExpression from './createObjectExpression';
 import requireCssModule from './requireCssModule';
 import resolveStringLiteral from './resolveStringLiteral';
 import replaceJsxExpressionContainer from './replaceJsxExpressionContainer';
+import attributeNameExists from './attributeNameExists';
+import createSpreadMapper from './createSpreadMapper';
+import handleSpreadClassName from './handleSpreadClassName';
 
 const ajv = new Ajv({
   // eslint-disable-next-line id-match
@@ -30,6 +33,8 @@ export default ({
   types: BabelTypes
 }) => {
   const filenameMap = {};
+
+  let skip = false;
 
   const setupFileForRuntimeResolution = (path, filename) => {
     const programPath = path.findParent((parentPath) => {
@@ -121,6 +126,10 @@ export default ({
     return require.resolve(path.node.source.value);
   };
 
+  const isFilenameExcluded = (filename, exclude) => {
+    return filename.match(new RegExp(exclude));
+  };
+
   const notForPlugin = (path: *, stats: *) => {
     stats.opts.filetypes = stats.opts.filetypes || {};
 
@@ -130,7 +139,9 @@ export default ({
       return true;
     }
 
-    if (stats.opts.exclude && getTargetResourcePath(path, stats).match(new RegExp(stats.opts.exclude))) {
+    const filename = getTargetResourcePath(path, stats);
+
+    if (stats.opts.exclude && isFilenameExcluded(filename, stats.opts.exclude)) {
       return true;
     }
 
@@ -141,7 +152,7 @@ export default ({
     inherits: babelPluginJsxSyntax,
     visitor: {
       ImportDeclaration (path: *, stats: *): void {
-        if (notForPlugin(path, stats)) {
+        if (skip || notForPlugin(path, stats)) {
           return;
         }
 
@@ -177,7 +188,15 @@ export default ({
         }
       },
       JSXElement (path: *, stats: *): void {
+        if (skip) {
+          return;
+        }
+
         const filename = stats.file.opts.filename;
+
+        if (stats.opts.exclude && isFilenameExcluded(filename, stats.opts.exclude)) {
+          return;
+        }
 
         let attributeNames = optionsDefaults.attributeNames;
 
@@ -194,10 +213,20 @@ export default ({
           return;
         }
 
-        const handleMissingStyleName = stats.opts && stats.opts.handleMissingStyleName || optionsDefaults.handleMissingStyleName;
+        const {
+          handleMissingStyleName = optionsDefaults.handleMissingStyleName,
+          autoResolveMultipleImports = optionsDefaults.autoResolveMultipleImports
+        } = stats.opts || {};
+
+        const spreadMap = createSpreadMapper(path, stats);
 
         for (const attribute of attributes) {
           const destinationName = attributeNames[attribute.name.name];
+
+          const options = {
+            autoResolveMultipleImports,
+            handleMissingStyleName
+          };
 
           if (t.isStringLiteral(attribute.value)) {
             resolveStringLiteral(
@@ -205,9 +234,7 @@ export default ({
               filenameMap[filename].styleModuleImportMap,
               attribute,
               destinationName,
-              {
-                handleMissingStyleName
-              }
+              options
             );
           } else if (t.isJSXExpressionContainer(attribute.value)) {
             if (!filenameMap[filename].importedHelperIndentifier) {
@@ -220,9 +247,15 @@ export default ({
               destinationName,
               filenameMap[filename].importedHelperIndentifier,
               filenameMap[filename].styleModuleImportMapIdentifier,
-              {
-                handleMissingStyleName
-              }
+              options
+            );
+          }
+
+          if (spreadMap[destinationName]) {
+            handleSpreadClassName(
+              path,
+              destinationName,
+              spreadMap[destinationName]
             );
           }
         }
@@ -240,6 +273,10 @@ export default ({
         filenameMap[filename] = {
           styleModuleImportMap: {}
         };
+
+        if (stats.opts.skip && !attributeNameExists(path, stats)) {
+          skip = true;
+        }
       }
     }
   };
