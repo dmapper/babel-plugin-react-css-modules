@@ -63,7 +63,7 @@
   ],
   "license": "BSD-3-Clause",
   "main": "dist/index.js",
-  "name": "babel-plugin-react-css-modules",
+  "name": "@startupjs/babel-plugin-react-css-modules",
   "repository": {
     "type": "git",
     "url": "https://github.com/gajus/babel-plugin-react-css-modules"
@@ -74,6 +74,9 @@
     "build-schema-helper": "mkdir -p ./dist/browser/schemas && NODE_ENV=production babel ./src/schemas/optionsDefaults.js --out-file ./dist/browser/schemas/optionsDefaults.js --source-maps --no-babelrc --plugins @babel/plugin-transform-modules-commonjs,@babel/plugin-transform-flow-strip-types --presets @babel/preset-env",
     "lint": "eslint ./src && flow",
     "test": "jest"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "version": "1.0.0"
 }
