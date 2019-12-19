@@ -86,10 +86,12 @@ const getTokens = (runner, cssSourceFilePath, filetypeOptions) => {
 
     if ((0, _fs.existsSync)(CONFIG_PATH)) {
       // eslint-disable-next-line import/no-dynamic-require, global-require
-      const config = require(CONFIG_PATH);
+      const {
+        ui
+      } = require(CONFIG_PATH);
 
-      if (config && config.ui) {
-        compiler.use((0, _stylusHashPlugin.default)('$UI', config.ui));
+      if (ui) {
+        compiler.use((0, _stylusHashPlugin.default)('$UI', ui));
       }
     }
 
