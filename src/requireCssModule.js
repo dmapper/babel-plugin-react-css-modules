@@ -79,10 +79,12 @@ const getTokens = (runner, cssSourceFilePath: string, filetypeOptions: ?Filetype
   const options: Object = {
     from: cssSourceFilePath
   };
+
   let src = readFileSync(cssSourceFilePath, 'utf-8');
 
   if (/\.styl$/.test(cssSourceFilePath)) {
     const STYLES_PATH = join(process.cwd(), 'styles/index.styl');
+    const CONFIG_PATH = join(process.cwd(), 'startupjs.config.js');
     const compiler = stylus(src);
 
     compiler.set('filename', cssSourceFilePath);
@@ -91,7 +93,18 @@ const getTokens = (runner, cssSourceFilePath: string, filetypeOptions: ?Filetype
     if (existsSync(STYLES_PATH)) {
       compiler.import(STYLES_PATH);
     }
+
     compiler.define('__WEB__', true);
+
+    if (existsSync(CONFIG_PATH)) {
+      // eslint-disable-next-line import/no-dynamic-require, global-require
+      const config = require(CONFIG_PATH);
+
+      if (config && config.ui) {
+        compiler.define('$UI', config.ui, true);
+      }
+    }
+
     compiler.render((err, res) => {
       if (err) {
         throw new Error(err);

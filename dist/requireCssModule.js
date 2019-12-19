@@ -72,6 +72,7 @@ const getTokens = (runner, cssSourceFilePath, filetypeOptions) => {
 
   if (/\.styl$/.test(cssSourceFilePath)) {
     const STYLES_PATH = (0, _path.join)(process.cwd(), 'styles/index.styl');
+    const CONFIG_PATH = (0, _path.join)(process.cwd(), 'startupjs.config.js');
     const compiler = (0, _stylus.default)(src);
     compiler.set('filename', cssSourceFilePath); // TODO: Make this a setting
 
@@ -80,6 +81,16 @@ const getTokens = (runner, cssSourceFilePath, filetypeOptions) => {
     }
 
     compiler.define('__WEB__', true);
+
+    if ((0, _fs.existsSync)(CONFIG_PATH)) {
+      // eslint-disable-next-line import/no-dynamic-require, global-require
+      const config = require(CONFIG_PATH);
+
+      if (config && config.ui) {
+        compiler.define('$UI', config.ui, true);
+      }
+    }
+
     compiler.render((err, res) => {
       if (err) {
         throw new Error(err);
