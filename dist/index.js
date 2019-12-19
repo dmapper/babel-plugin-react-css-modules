@@ -54,7 +54,7 @@ var _default = ({
     });
     filenameMap[filename].importedHelperIndentifier = programPath.scope.generateUidIdentifier('getClassName');
     filenameMap[filename].styleModuleImportMapIdentifier = programPath.scope.generateUidIdentifier('styleModuleImportMap');
-    programPath.unshiftContainer('body', t.importDeclaration([t.importDefaultSpecifier(filenameMap[filename].importedHelperIndentifier)], t.stringLiteral('babel-plugin-react-css-modules/dist/browser/getClassName')));
+    programPath.unshiftContainer('body', t.importDeclaration([t.importDefaultSpecifier(filenameMap[filename].importedHelperIndentifier)], t.stringLiteral('@startupjs/babel-plugin-react-css-modules/dist/browser/getClassName')));
     const firstNonImportDeclarationNode = programPath.get('body').find(node => {
       return !t.isImportDeclaration(node);
     });
