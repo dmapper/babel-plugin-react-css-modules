@@ -25,6 +25,8 @@ var _postcssModulesValues = _interopRequireDefault(require("postcss-modules-valu
 
 var _stylus = _interopRequireDefault(require("stylus"));
 
+var _stylusHashPlugin = _interopRequireDefault(require("@dmapper/stylus-hash-plugin"));
+
 var _optionsDefaults = _interopRequireDefault(require("./schemas/optionsDefaults"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -87,7 +89,7 @@ const getTokens = (runner, cssSourceFilePath, filetypeOptions) => {
       const config = require(CONFIG_PATH);
 
       if (config && config.ui) {
-        compiler.define('$UI', config.ui, true);
+        compiler.use((0, _stylusHashPlugin.default)('$UI', config.ui));
       }
     }
 

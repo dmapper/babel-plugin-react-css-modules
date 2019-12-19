@@ -17,6 +17,7 @@ import Parser from 'postcss-modules-parser';
 import Scope from 'postcss-modules-scope';
 import Values from 'postcss-modules-values';
 import stylus from 'stylus';
+import stylusHashPlugin from '@dmapper/stylus-hash-plugin';
 import type {
   GenerateScopedNameConfigurationType,
   StyleModuleMapType
@@ -101,7 +102,7 @@ const getTokens = (runner, cssSourceFilePath: string, filetypeOptions: ?Filetype
       const config = require(CONFIG_PATH);
 
       if (config && config.ui) {
-        compiler.define('$UI', config.ui, true);
+        compiler.use(stylusHashPlugin('$UI', config.ui));
       }
     }
 
