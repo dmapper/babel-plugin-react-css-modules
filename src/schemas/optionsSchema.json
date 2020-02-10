@@ -73,6 +73,12 @@
     "skip": {
       "type": "boolean"
     },
+    "skipExtensions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "autoResolveMultipleImports": {
       "type": "boolean"
     }

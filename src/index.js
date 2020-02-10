@@ -156,6 +156,16 @@ export default ({
           return;
         }
 
+        if (stats.opts.skipExtensions && stats.opts.skipExtensions.length > 0) {
+          const extensionsOr = '(?:' + stats.opts.skipExtensions.join('|').replace(/\./g, '\\.') + ')';
+
+          if (new RegExp('\\.' + extensionsOr + '$').test(path.node.source.value)) {
+            skip = true;
+
+            return;
+          }
+        }
+
         const filename = stats.file.opts.filename;
         const targetResourcePath = getTargetResourcePath(path, stats);
 
